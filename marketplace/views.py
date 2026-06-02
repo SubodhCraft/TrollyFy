@@ -188,7 +188,7 @@ class ListingCreateView(LoginRequiredMixin, CreateView):
             form.instance.status = 'PUBLISHED'
             
         response = super().form_valid(form)
-        # Process multiple uploads
+        # Process multiple uploads - Strictly enforce max 3 server-side
         for f in uploaded_images[:3]:
             ItemImage.objects.create(listing=self.object, image=f)
         
@@ -220,9 +220,10 @@ class ListingUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
             form.instance.status = 'PUBLISHED'
             
         if uploaded_images:
-            current_count = self.object.images.count()
-            remaining_slots = 3 - current_count
-            for f in uploaded_images[:remaining_slots]:
+            # UC: "replace them with a fresh ones"
+            # If new images are provided, we assume the user wants a clean slate for this listing's media.
+            self.object.images.all().delete()
+            for f in uploaded_images[:3]: # Cap at 3
                 ItemImage.objects.create(listing=self.object, image=f)
         
         if form.instance.status == 'DRAFT':

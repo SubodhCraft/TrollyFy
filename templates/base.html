@@ -318,6 +318,11 @@
                         </a>
                         <a href="{% url 'conversations' %}" class="icon-btn text-decoration-none {% if request.resolver_match.url_name == 'conversations' or request.resolver_match.url_name == 'chat_room' %}active{% endif %}" title="Messages">
                             <i class="bi bi-chat-dots{% if request.resolver_match.url_name == 'conversations' or request.resolver_match.url_name == 'chat_room' %}-fill{% endif %}"></i>
+                            {% if unread_count > 0 %}
+                                <span class="position-absolute translate-middle badge rounded-pill bg-danger" style="font-size: 0.6rem; padding: 0.35em 0.5em; top: 15%; start: 85%;">
+                                    {{ unread_count }}
+                                </span>
+                            {% endif %}
                             <span class="d-lg-none ms-2 small fw-medium">Messages</span>
                         </a>
                         <a href="{% url 'report_system' %}" class="icon-btn text-decoration-none {% if request.resolver_match.url_name == 'report_system' %}active{% endif %}" title="Report System Issue">

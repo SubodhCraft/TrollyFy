@@ -68,7 +68,7 @@
                             accessed in the view via request.FILES.getlist('image_files').
                         -->
                         <div class="col-md-6">
-                            <label class="form-label fw-bold" for="image_files">Upload Photos (At least 1, Max 3) <span class="text-danger">*</span></label>
+                            <label class="form-label fw-bold" for="image_files">Upload Photos (Max 3) <span class="text-danger">*</span></label>
                             <input 
                                 type="file" 
                                 name="image_files" 
@@ -77,8 +77,11 @@
                                 accept="image/*"
                                 class="form-control"
                                 {% if not object %}required{% endif %}
+                                onchange="validateImageFiles(this)"
                             >
-                            <div class="form-text small">Mandatory for new listings. You can select up to 3 image files.</div>
+                            <div class="form-text small" id="image_help">
+                                {% if object %}Uploading new files will <strong>replace</strong> all existing photos.{% else %}You can select up to 3 image files.{% endif %}
+                            </div>
                         </div>
                     </div>
 
@@ -108,4 +111,22 @@
         </div>
     </div>
 </div>
+{% block extra_js %}
+<script>
+    function validateImageFiles(input) {
+        const maxFiles = 3;
+        const helpText = document.getElementById('image_help');
+        
+        if (input.files.length > maxFiles) {
+            alert("Limitation Alert: You can only select up to 3 images per listing. Please deselect some files.");
+            input.value = ""; // Clear selection
+            helpText.classList.add('text-danger');
+            helpText.classList.remove('text-muted');
+        } else {
+            helpText.classList.remove('text-danger');
+            helpText.classList.add('text-muted');
+        }
+    }
+</script>
+{% endblock %}
 {% endblock %}
