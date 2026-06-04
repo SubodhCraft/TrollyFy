@@ -307,7 +307,10 @@
 
                 <!-- Password Field -->
                 <div class="form-floating-custom">
-                    <label for="id_password">Password</label>
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <label for="id_password" class="mb-0">Password</label>
+                        <a href="{% url 'password_reset' %}" class="text-primary small text-decoration-none fw-bold" style="font-size: 0.75rem;">Forgot password?</a>
+                    </div>
                     <div class="field-wrapper">
                         <input type="password" name="password" id="id_password"
                                class="auth-input" placeholder="Enter your password"

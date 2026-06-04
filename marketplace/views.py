@@ -17,7 +17,7 @@ from django.utils.encoding import force_bytes, force_str
 from django.contrib.auth.tokens import default_token_generator
 
 from .models import User, Listing, ItemImage, Report, ChatRoom, ChatMessage, Wishlist
-from .forms import CustomUserCreationForm, ListingForm
+from .forms import CustomUserCreationForm, ListingForm, CustomSetPasswordForm
 
 # --- AUTHENTICATION & SECURITY PATCH (PHASE 3.5) ---
 
@@ -368,3 +368,37 @@ def wishlist_view(request):
     """Displays all items bookmarked by the student."""
     bookmarks = Wishlist.objects.filter(user=request.user).select_related('listing')
     return render(request, 'marketplace/wishlist.html', {'bookmarks': bookmarks})
+
+# --- CUSTOM PASSWORD RESET FLOW (Local Development Fix) ---
+
+def custom_password_reset(request):
+    if request.method == "POST":
+        email = request.POST.get('email')
+        print(f"\nDEBUG: Password reset requested for: '{email}'")
+        users = User.objects.filter(email__iexact=email)
+        print(f"DEBUG: Found {users.count()} matching users.")
+        if users.exists():
+            for user in users:
+                uid = urlsafe_base64_encode(force_bytes(user.pk))
+                token = default_token_generator.make_token(user)
+                current_site = get_current_site(request)
+                
+                reset_url = f"http://{current_site.domain}{reverse('password_reset_confirm', kwargs={'uidb64': uid, 'token': token})}"
+                
+                # Minimalist message to prevent terminal line-wrapping/Quoted-Printable encoding
+                subject = "Reset Your Trollyfy Password"
+                message = f"RESET_LINK: {reset_url}"
+                
+                # GROUND TRUTH: Print directly to console to bypass all email encoding issues
+                print("\n" + "="*80)
+                print(f">>> VALID RESET LINK: {reset_url}")
+                print("="*80 + "\n")
+                
+                send_mail(subject, message, 'noreply@trollyfy.com', [user.email])
+            
+            return redirect('password_reset_done')
+        else:
+            # For security, we still redirect to 'done' even if email doesn't exist
+            return redirect('password_reset_done')
+            
+    return render(request, 'marketplace/password_reset_form.html')

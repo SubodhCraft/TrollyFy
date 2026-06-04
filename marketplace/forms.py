@@ -1,5 +1,5 @@
 from django import forms
-from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.forms import UserCreationForm, SetPasswordForm
 from .models import User, Listing
 
 class MultiFileInput(forms.ClearableFileInput):
@@ -63,6 +63,22 @@ class CustomUserCreationForm(UserCreationForm):
             raise forms.ValidationError("An account with this email address already exists.")
             
         return email
+
+class CustomSetPasswordForm(SetPasswordForm):
+    """
+    SECURITY UPGRADE: Ensures the user doesn't reset to their current password.
+    This forces a legitimate credential refresh for compromised accounts.
+    """
+    def clean(self):
+        cleaned_data = super().clean()
+        new_password = cleaned_data.get("new_password1")
+        
+        # Security Check: Compare the new password hash against the existing one
+        if new_password and self.user.check_password(new_password):
+            raise forms.ValidationError(
+                "Security Restriction: Your new password cannot be the same as your current one. Please choose a fresh, secure password."
+            )
+        return cleaned_data
 
 
 
